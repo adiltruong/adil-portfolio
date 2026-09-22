@@ -11,7 +11,7 @@ export default function Contact() {
 
       <a
         href={`mailto:${profile.email}`}
-        className="mt-6 inline-block rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+        className="mt-6 inline-block rounded-lg bg-court px-5 py-2.5 text-sm font-medium text-white transition hover:bg-court-deep dark:bg-ball dark:text-slate-900 dark:hover:bg-ball/85"
       >
         {profile.email}
       </a>
@@ -25,7 +25,7 @@ export default function Contact() {
                 href={social.url}
                 target="_blank"
                 rel="noreferrer"
-                className="text-slate-500 underline-offset-4 transition hover:text-blue-600 hover:underline dark:text-slate-400 dark:hover:text-blue-400"
+                className="text-slate-500 underline-offset-4 transition hover:text-court hover:underline dark:text-slate-400 dark:hover:text-court-light"
               >
                 {social.label}
               </a>

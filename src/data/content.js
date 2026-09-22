@@ -12,7 +12,8 @@ export const profile = {
 
 export const socials = [
   { label: 'GitHub', url: 'https://github.com/adiltruong' },
-  { label: 'LinkedIn', url: 'https://linkedin.com/in/your-handle' },
+  { label: 'LinkedIn', url: 'https://www.linkedin.com/in/adiltruong' },
+  { label: 'Instagram', url: 'https://www.instagram.com/adiltruong' },
   { label: 'Email', url: 'mailto:adiltruong75@gmail.com' },
 ]
 

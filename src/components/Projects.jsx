@@ -8,7 +8,7 @@ export default function Projects() {
         {projects.map((project) => (
           <article
             key={project.title}
-            className="flex flex-col rounded-xl border border-slate-200 p-5 transition hover:border-slate-300 hover:shadow-sm dark:border-slate-800 dark:hover:border-slate-700"
+            className="flex flex-col rounded-xl border border-slate-200 p-5 transition hover:border-court/50 hover:shadow-sm dark:border-slate-800 dark:hover:border-court-light/50"
           >
             <h3 className="font-semibold text-slate-900 dark:text-white">
               {project.title}
@@ -21,7 +21,7 @@ export default function Projects() {
               {project.tags.map((tag) => (
                 <li
                   key={tag}
-                  className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                  className="rounded-full bg-ball/40 px-2.5 py-1 text-xs font-medium text-ball-ink dark:bg-ball/15 dark:text-ball"
                 >
                   {tag}
                 </li>
@@ -34,7 +34,7 @@ export default function Projects() {
                   href={project.repo}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-blue-600 underline-offset-4 hover:underline dark:text-blue-400"
+                  className="text-court underline-offset-4 hover:underline dark:text-court-light"
                 >
                   Code
                 </a>
@@ -44,7 +44,7 @@ export default function Projects() {
                   href={project.demo}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-blue-600 underline-offset-4 hover:underline dark:text-blue-400"
+                  className="text-court underline-offset-4 hover:underline dark:text-court-light"
                 >
                   Live demo
                 </a>
