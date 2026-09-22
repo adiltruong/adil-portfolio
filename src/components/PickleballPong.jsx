@@ -29,6 +29,8 @@ const CPU_REACT_X = NET_X - 60
 const CPU_WHIFF_BASE = 0.05
 const CPU_WHIFF_PER_HIT = 0.015
 const POINT_PAUSE_MS = 900
+// No paddle input for this long counts as walking away: freeze the game.
+const IDLE_PAUSE_MS = 5000
 
 const WIN_SCORE = 11
 const WIN_BY = 2
@@ -58,7 +60,9 @@ function readColors() {
 
 function newGame() {
   return {
-    phase: 'ready', // ready | playing | point | over
+    phase: 'ready', // ready | playing | point | paused | over
+    pausedFrom: null,
+    lastInput: 0,
     score: { you: 0, cpu: 0 },
     server: 'you',
     resumeAt: 0,
@@ -111,11 +115,17 @@ function update(g, dt, now) {
     p.y = p.targetY
   }
   p.y = clampPaddle(p.y)
+  if (g.keys.up || g.keys.down) g.lastInput = now
+
+  if ((g.phase === 'playing' || g.phase === 'point') && now - g.lastInput > IDLE_PAUSE_MS) {
+    g.pausedFrom = g.phase
+    g.phase = 'paused'
+  }
 
   if (g.phase === 'point' && now >= g.resumeAt) serve(g)
   if (g.phase !== 'playing') {
     // Keep the ball on the server's paddle between points.
-    if (g.phase !== 'over') g.ball.y = (g.server === 'you' ? g.player : g.cpu).y
+    if (g.phase === 'point') g.ball.y = (g.server === 'you' ? g.player : g.cpu).y
     return null
   }
 
@@ -167,6 +177,13 @@ function update(g, dt, now) {
   g.phase = over ? 'over' : 'point'
   g.resumeAt = now + POINT_PAUSE_MS
   return winner
+}
+
+function resume(g, now) {
+  g.phase = g.pausedFrom
+  g.pausedFrom = null
+  // Give a moment to get set before the next serve.
+  if (g.phase === 'point') g.resumeAt = now + POINT_PAUSE_MS
 }
 
 function drawBall(ctx, x, y, r, colors) {
@@ -315,6 +332,12 @@ export default function PickleballPong() {
 
   const start = () => {
     const g = gameRef.current
+    const now = performance.now()
+    g.lastInput = now
+    if (g.phase === 'paused') {
+      resume(g, now)
+      setPhase(g.phase)
+    }
     if (g.phase === 'over') {
       const fresh = newGame()
       fresh.player.y = g.player.y
@@ -332,7 +355,9 @@ export default function PickleballPong() {
 
   const onPointerMove = (e) => {
     const rect = canvasRef.current.getBoundingClientRect()
-    gameRef.current.player.targetY = ((e.clientY - rect.top) / rect.height) * H
+    const g = gameRef.current
+    g.player.targetY = ((e.clientY - rect.top) / rect.height) * H
+    g.lastInput = performance.now()
   }
 
   const setKey = (e, down) => {
@@ -342,6 +367,7 @@ export default function PickleballPong() {
     else if (k === 'ArrowDown' || k === 's' || k === 'S') g.keys.down = down
     else if (down && (k === ' ' || k === 'Enter')) start()
     else return
+    g.lastInput = performance.now()
     e.preventDefault()
   }
 
@@ -349,6 +375,7 @@ export default function PickleballPong() {
   const youWon = you > cpu
   let status
   if (phase === 'over') status = youWon ? `You win ${you}–${cpu}!` : `CPU wins ${cpu}–${you}.`
+  else if (phase === 'paused') status = 'Paused'
   else if (lastPoint) status = lastPoint === 'you' ? 'Your point.' : 'CPU point.'
   else status = ''
 
@@ -375,7 +402,7 @@ export default function PickleballPong() {
         <canvas
           ref={canvasRef}
           tabIndex={0}
-          aria-label="Pickleball Pong game court. Use the up and down arrow keys to move your paddle, Space to serve."
+          aria-label="Pickleball Pong game court. Use the up and down arrow keys to move your paddle, Space to serve or resume."
           className="block aspect-[2/1] w-full cursor-none touch-none rounded-[18px] shadow-md outline-none focus-visible:ring-4 focus-visible:ring-ball/60"
           onPointerMove={onPointerMove}
           onPointerDown={(e) => {
@@ -389,13 +416,13 @@ export default function PickleballPong() {
           }}
         />
 
-        {(phase === 'ready' || phase === 'over') && (
+        {(phase === 'ready' || phase === 'paused' || phase === 'over') && (
           <button
             type="button"
             onClick={start}
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-ball px-5 py-2.5 text-sm font-semibold text-slate-900 shadow-lg transition hover:scale-105"
           >
-            {phase === 'over' ? 'Play again' : 'Serve'}
+            {{ ready: 'Serve', paused: 'Resume', over: 'Play again' }[phase]}
           </button>
         )}
       </div>
