@@ -4,6 +4,7 @@ import Hero from './components/Hero.jsx'
 import PickleballPong from './components/PickleballPong.jsx'
 import Projects from './components/Projects.jsx'
 import About from './components/About.jsx'
+import WordRally from './components/WordRally.jsx'
 import Contact from './components/Contact.jsx'
 import Footer from './components/Footer.jsx'
 
@@ -27,6 +28,7 @@ export default function App() {
         {showGame && <PickleballPong />}
         <Projects />
         <About />
+        <WordRally />
         <Contact />
       </main>
       <Footer />

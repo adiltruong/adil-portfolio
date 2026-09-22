@@ -23,3 +23,16 @@ html {
 section[id] {
   scroll-margin-top: 5rem;
 }
+
+/* Rejected guess in Word Rally. */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [class*="animate-[shake"] {
+    animation: none;
+  }
+}
