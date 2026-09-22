@@ -28,6 +28,13 @@ export const about = {
   ],
 }
 
+// Shown in this order. role and dates are optional; they appear when filled in.
+export const work = [
+  { company: 'Mercor', url: 'https://mercor.com', role: 'AI Engineer', dates: '2025 – Present' },
+  { company: 'Outlier AI', url: 'https://outlier.ai', role: 'AI Engineer', dates: '2023 – 2025' },
+  { company: 'Ally Bank', url: 'https://ally.com', role: 'Software Engineer', dates: '2020 – 2023' },
+]
+
 export const projects = [
   {
     title: 'Project One',

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import Nav from './components/Nav.jsx'
 import Hero from './components/Hero.jsx'
 import PickleballPong from './components/PickleballPong.jsx'
+import Work from './components/Work.jsx'
 import Projects from './components/Projects.jsx'
 import About from './components/About.jsx'
 import WordRally from './components/WordRally.jsx'
@@ -26,6 +27,7 @@ export default function App() {
       <main>
         <Hero />
         {showGame && <PickleballPong />}
+        <Work />
         <Projects />
         <About />
         <WordRally />

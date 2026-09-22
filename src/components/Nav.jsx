@@ -2,6 +2,7 @@ import { profile } from '../data/content.js'
 import avatar from '../assets/avatar.jpg'
 
 const links = [
+  { href: '#work', label: 'Work' },
   { href: '#projects', label: 'Projects' },
   { href: '#about', label: 'About' },
   { href: '#contact', label: 'Contact' },
