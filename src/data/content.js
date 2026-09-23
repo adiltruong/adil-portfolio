@@ -5,7 +5,7 @@ export const profile = {
   role: 'Software Engineer',
   tagline:
     'I build web applications that are fast, accessible, and pleasant to use.',
-  location: 'Your City, Country',
+  location: 'San Francisco',
   email: 'adiltruong75@gmail.com',
   resumeUrl: '', // e.g. '/resume.pdf' — drop the file in public/
 }
