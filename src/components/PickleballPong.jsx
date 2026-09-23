@@ -1,5 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Section from './Section.jsx'
+import { Leaderboard, NameForm } from './Leaderboard.jsx'
+import { isFirebaseConfigured } from '../firebase/config.js'
+import { loadPlayerName, savePlayerName } from '../firebase/client.js'
+import { fetchPongLeaders, submitPongWin } from '../firebase/games.js'
 
 // Same geometry as the hero court: 44 × 20 ft at 10 units per foot.
 const W = 480
@@ -259,6 +263,47 @@ export default function PickleballPong() {
   const [score, setScore] = useState({ you: 0, cpu: 0 })
   const [phase, setPhase] = useState('ready')
   const [lastPoint, setLastPoint] = useState(null)
+  // Leaderboard (only when Firebase is configured).
+  const [leaders, setLeaders] = useState(null) // { rows, uid }
+  const [lastWin, setLastWin] = useState(null) // { you, cpu, status: 'ask' | 'saving' | 'saved' | 'not-best' | 'error' }
+  const winHandled = useRef(false) // each finished game is recorded once
+
+  const loadLeaders = useCallback(() => {
+    fetchPongLeaders()
+      .then(setLeaders)
+      .catch((err) => console.warn('Pong leaderboard unavailable:', err))
+  }, [])
+
+  useEffect(() => {
+    if (isFirebaseConfigured) loadLeaders()
+  }, [loadLeaders])
+
+  const recordWin = useCallback(
+    async (win, name) => {
+      savePlayerName(name)
+      setLastWin({ ...win, status: 'saving' })
+      try {
+        const saved = await submitPongWin({ name, you: win.you, cpu: win.cpu })
+        setLastWin({ ...win, status: saved ? 'saved' : 'not-best' })
+        loadLeaders()
+      } catch (err) {
+        console.warn('Could not save win:', err)
+        setLastWin({ ...win, status: 'error' })
+      }
+    },
+    [loadLeaders],
+  )
+
+  // A finished game you won goes on the board, using your saved name if any.
+  useEffect(() => {
+    if (!isFirebaseConfigured || phase !== 'over' || score.you <= score.cpu) return
+    if (winHandled.current) return
+    winHandled.current = true
+    const win = { you: score.you, cpu: score.cpu }
+    const name = loadPlayerName()
+    if (name) recordWin(win, name)
+    else setLastWin({ ...win, status: 'ask' })
+  }, [phase, score, recordWin])
   const reducedMotion = usePrefersReducedMotion()
 
   // Arrive here from the hero court.
@@ -339,6 +384,8 @@ export default function PickleballPong() {
       setPhase(g.phase)
     }
     if (g.phase === 'over') {
+      setLastWin(null)
+      winHandled.current = false
       const fresh = newGame()
       fresh.player.y = g.player.y
       Object.assign(g, fresh)
@@ -426,6 +473,32 @@ export default function PickleballPong() {
           </button>
         )}
       </div>
+
+      {isFirebaseConfigured && (
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          <Leaderboard
+            title="Best wins"
+            rows={leaders && leaders.rows.map((r) => ({ id: r.id, name: r.name, detail: `${r.you}–${r.cpu}` }))}
+            highlightId={leaders?.uid}
+            empty="No wins yet. Beat the CPU to get on the board."
+          />
+          <div className="text-sm text-slate-600 dark:text-slate-400" aria-live="polite">
+            {lastWin?.status === 'ask' ? (
+              <NameForm prompt="You won! Add your name to the board:" onSubmit={(name) => recordWin(lastWin, name)} />
+            ) : lastWin?.status === 'saving' ? (
+              'Saving your win…'
+            ) : lastWin?.status === 'saved' ? (
+              `Your ${lastWin.you}–${lastWin.cpu} win is on the board.`
+            ) : lastWin?.status === 'not-best' ? (
+              'Nice win! Your best one is already on the board.'
+            ) : lastWin?.status === 'error' ? (
+              'Could not save your win right now.'
+            ) : (
+              'Win a game to post your score. The board ranks wins by margin, so 11–0 is the one to beat.'
+            )}
+          </div>
+        </div>
+      )}
 
       <a
         href="#top"

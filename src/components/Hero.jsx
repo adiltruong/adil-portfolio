@@ -1,6 +1,7 @@
 import { profile, socials } from '../data/content.js'
 import { Court } from './Pickleball.jsx'
 import GoldenGate from './GoldenGate.jsx'
+import LiveViewers from './LiveViewers.jsx'
 
 export default function Hero() {
   return (
@@ -21,8 +22,11 @@ export default function Hero() {
             {profile.tagline}
           </p>
           {profile.location && (
-            <p className="mt-3 text-sm font-medium text-slate-600 dark:text-slate-300">
-              <span aria-hidden="true">📍</span> {profile.location}
+            <p className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm font-medium text-slate-600 dark:text-slate-300">
+              <span>
+                <span aria-hidden="true">📍</span> {profile.location}
+              </span>
+              <LiveViewers />
             </p>
           )}
 

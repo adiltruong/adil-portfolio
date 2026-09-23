@@ -41,6 +41,40 @@ src/
   index.css           Tailwind import + theme tokens
 ```
 
+## Firebase features
+
+The Pong leaderboard, Word Rally daily stats and leaderboard, and the live
+"viewing now" count run on Firebase's free Spark plan. They stay hidden until
+`src/firebase/config.js` is filled in, and the Firebase SDK only loads then.
+
+### One-time setup
+
+1. Create a project at https://console.firebase.google.com (Google Analytics
+   isn't needed). Stay on the free **Spark** plan.
+2. **Build → Authentication → Get started → Sign-in method → Anonymous →
+   Enable.** Every visitor gets an anonymous ID that the rules key writes to.
+3. **Build → Firestore Database → Create database** (production mode, any
+   region). Open **Rules**, paste in `firestore.rules`, and **Publish**.
+4. **Build → Realtime Database → Create database** (locked mode). Open
+   **Rules**, paste in `database.rules.json`, and **Publish**.
+5. **Project settings → General → Your apps → Web (`</>`)**: register an app
+   (no Hosting needed) and copy the `firebaseConfig` values into
+   `projectConfig` in `src/firebase/config.js`. Make sure it includes
+   `databaseURL`.
+6. **Authentication → Settings → Authorized domains**: add
+   `adiltruong.github.io`.
+
+The config values are public by design; the rules are what protect the data.
+To remove a leaderboard entry, delete its document in the Firestore console.
+
+### Working locally with emulators
+
+```bash
+npm run emulators       # local Auth, Firestore and Realtime Database (needs Java)
+npm run dev:emulators   # the site, pointed at the emulators
+npm run test:rules      # 36 checks that the rules allow players and block cheats
+```
+
 ## Deploying
 
 Pushing to `main` triggers `.github/workflows/deploy.yml`, which builds the

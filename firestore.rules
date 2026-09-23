@@ -1,0 +1,100 @@
+rules_version = '2';
+
+// Security rules for the portfolio's Firestore data. Paste into Firebase
+// console → Firestore → Rules, or deploy with `firebase deploy --only firestore`.
+// Everything not matched below is denied.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function validName(n) {
+      return n is string && n.size() >= 1 && n.size() <= 20;
+    }
+
+    // ---- Pickleball Pong leaderboard: one best win per visitor ----
+    match /leaderboards/pong/scores/{uid} {
+      allow read: if true;
+      allow create: if isOwner(uid) && validPongWin();
+      allow update: if isOwner(uid) && validPongWin()
+        && request.resource.data.margin > resource.data.margin;
+
+      // A legal pickleball win: to 11, win by 2 (so past 11 only by exactly 2).
+      function validPongWin() {
+        let d = request.resource.data;
+        return d.keys().hasOnly(['name', 'you', 'cpu', 'margin', 'createdAt'])
+          && d.keys().hasAll(['name', 'you', 'cpu', 'margin', 'createdAt'])
+          && validName(d.name)
+          && d.you is int && d.cpu is int && d.margin is int
+          && d.cpu >= 0 && d.you >= 11 && d.you - d.cpu >= 2
+          && (d.you == 11 || d.you - d.cpu == 2)
+          && d.margin == d.you - d.cpu
+          && d.createdAt == request.time;
+      }
+    }
+
+    // ---- Word Rally daily: results and global counters ----
+    match /wordRallyDays/{day} {
+      allow read: if true;
+
+      // Only today's (UTC) day can be written.
+      function isToday() {
+        let m = request.time.month();
+        let dd = request.time.day();
+        return day == string(request.time.year())
+          + '-' + (m < 10 ? '0' : '') + string(m)
+          + '-' + (dd < 10 ? '0' : '') + string(dd);
+      }
+
+      function playerPath() {
+        return /databases/$(database)/documents/wordRallyDays/$(day)/players/$(request.auth.uid);
+      }
+
+      // The counter for this visitor's result, read from the player doc
+      // written in the same batch.
+      function bucket() {
+        let g = getAfter(playerPath()).data.guesses;
+        return g == 7 ? 'fail' : 'g' + string(g);
+      }
+
+      // A counter may only move by +1, once per visitor, alongside a new
+      // player result for today.
+      function firstResult() {
+        return signedIn() && isToday()
+          && !exists(playerPath()) && existsAfter(playerPath());
+      }
+
+      allow create: if firstResult()
+        && request.resource.data.keys().hasOnly([bucket()])
+        && request.resource.data[bucket()] == 1;
+
+      allow update: if firstResult()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([bucket()])
+        && request.resource.data[bucket()] == resource.data.get(bucket(), 0) + 1;
+
+      match /players/{uid} {
+        allow read: if true;
+
+        allow create: if isOwner(uid) && isToday()
+          && request.resource.data.keys().hasOnly(['name', 'guesses', 'createdAt'])
+          && request.resource.data.keys().hasAll(['name', 'guesses', 'createdAt'])
+          && (request.resource.data.name == '' || validName(request.resource.data.name))
+          && request.resource.data.guesses is int
+          && request.resource.data.guesses >= 1 && request.resource.data.guesses <= 7
+          && request.resource.data.createdAt == request.time;
+
+        // Name can be added once, later, if the result was saved without one.
+        allow update: if isOwner(uid)
+          && resource.data.name == ''
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name'])
+          && validName(request.resource.data.name);
+      }
+    }
+  }
+}
