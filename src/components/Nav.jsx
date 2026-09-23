@@ -9,7 +9,11 @@ const links = [
   { href: '#contact', label: 'Contact' },
 ]
 
-export default function Nav() {
+export default function Nav({ showLeague }) {
+  const items = showLeague
+    ? [...links.slice(0, 3), { href: '#league', label: 'League' }, ...links.slice(3)]
+    : links
+
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/80 backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
       <nav className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4 sm:px-6">
@@ -27,7 +31,7 @@ export default function Nav() {
           <ThemeToggle />
         </div>
         <ul className="flex gap-3 text-sm sm:gap-6">
-          {links.map((link) => (
+          {items.map((link) => (
             <li key={link.href}>
               <a
                 href={link.href}

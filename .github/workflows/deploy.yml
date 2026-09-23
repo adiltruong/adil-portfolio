@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  # Rebuild every 6 hours so the League match history stays fresh.
+  schedule:
+    - cron: '0 */6 * * *'
 
 permissions:
   contents: read
@@ -24,6 +27,11 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - run: node scripts/fetch-lol.mjs
+        env:
+          RIOT_API_KEY: ${{ secrets.RIOT_API_KEY }}
+          RIOT_ID: ${{ vars.RIOT_ID }}
+          RIOT_REGION: ${{ vars.RIOT_REGION }}
       - run: npm run build
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
