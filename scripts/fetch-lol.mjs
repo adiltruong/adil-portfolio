@@ -17,7 +17,9 @@ import { mkdir, writeFile } from 'node:fs/promises'
 
 const OUT = new URL('../public/lol-matches.json', import.meta.url)
 
-const { RIOT_API_KEY, RIOT_ID, RIOT_REGION = 'americas' } = process.env
+const { RIOT_API_KEY, RIOT_ID } = process.env
+// CI passes unset repo variables as empty strings, so fall back on any falsy value.
+const RIOT_REGION = process.env.RIOT_REGION?.trim() || 'americas'
 const COUNT = Math.min(Number(process.env.LOL_MATCH_COUNT) || 10, 20)
 
 const QUEUES = {
@@ -93,5 +95,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.warn(`[lol] fetch failed, keeping site build going: ${err.message}`)
+  const cause = err.cause ? ` (${err.cause.code ?? err.cause.message})` : ''
+  console.warn(`[lol] fetch failed, keeping site build going: ${err.message}${cause}`)
 })
