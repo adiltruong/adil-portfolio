@@ -35,6 +35,10 @@ export const work = [
   { company: 'Ally Bank', url: 'https://ally.com', role: 'Software Engineer', dates: '2020 – 2023' },
 ]
 
+// League of Legends match history section and nav link. Matches are still
+// fetched in CI either way; flip to true to show them.
+export const showLeague = false
+
 export const projects = [
   {
     title: 'Project One',
