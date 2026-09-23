@@ -2,9 +2,9 @@
 
 export const profile = {
   name: 'Adil Truong',
-  role: 'Software Engineer',
+  role: 'AI Engineer',
   tagline:
-    'I build web applications that are fast, accessible, and pleasant to use.',
+    'I build with AI, backed by intensive evaluation work: writing rubrics, running evals, and setting baseline models so every improvement is measured, not guessed.',
   location: 'San Francisco',
   email: 'adiltruong75@gmail.com',
   resumeUrl: '', // e.g. '/resume.pdf' — drop the file in public/
